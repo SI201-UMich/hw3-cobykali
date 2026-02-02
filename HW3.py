@@ -1,12 +1,11 @@
-# Name:
-# Student ID:
-# Email:
-# Who or what you worked with on this homework (including generative AI like ChatGPT):
+# Name: Coby Kalimian
+# Student ID: 49505044
+# Email: cobykali@umich.edu
+# Who or what you worked with on this homework (including generative AI like ChatGPT): Nate Mitelman, Elliot Bolour, Noam Altman, Brandon Wivietsky
 # If you worked with generative AI also add a statement for how you used it.
-# e.g.:
+# e.g.: We asked AI to check that my code did everything the rubric said it should do and if it didn't to point out what I missed in the rubric.
 # Asked ChatGPT hints for debugging and suggesting the general structure of the code
-# Did your use of GenAI on this assignment align with your goals and guidelines in 
-#    your Gen AI contract? If not, why?
+# Did your use of GenAI on this assignment align with your goals and guidelines in your Gen AI contract? If not, why? --> it did
 
 import random
 import io
@@ -20,9 +19,8 @@ class CouponDispenser:
 
     Required attributes (initialized in __init__):
       - coupon_cards: list[str]              # all possible coupon texts
-      - customer_roster: list[str]             # names in order of assignment
-      - issued_indices: list[int]           # indices into coupon_cards aligned to customer_roster
-
+      - customer_roster: list[str]           # names in order of assignment
+      - issued_indices: list[int]            # indices into coupon_cards aligned to customer_roster
     """
 
     def __init__(self, coupon_cards):
@@ -32,6 +30,10 @@ class CouponDispenser:
         Args:
             coupon_cards (list[str]): list of possible coupons users can receive.
         """
+        self.coupon_cards = coupon_cards
+        self.customer_roster = []
+        self.issued_indices = []
+
         # TODO: Implement per instructions
         pass
 
@@ -43,6 +45,11 @@ class CouponDispenser:
         Returns:
             str
         """
+        if len(self.coupon_cards) == 0:
+            return ""
+        else:
+            return "|".join(self.coupon_cards)
+
         # TODO: Implement per instructions
         pass
 
@@ -60,6 +67,19 @@ class CouponDispenser:
         Returns:
             str: message as described above
         """
+        if len(self.coupon_cards) == 0:
+            return "The box is empty."
+
+        if name in self.customer_roster:
+            idx = self.customer_roster.index(name)
+            coupon = self.coupon_cards[self.issued_indices[idx]]
+            return f"That name already has been given a coupon: {coupon}"
+
+        coupon_index = random.randrange(len(self.coupon_cards))
+        self.customer_roster.append(name)
+        self.issued_indices.append(coupon_index)
+        return self.coupon_cards[coupon_index]
+
         # TODO: Implement per instructions
         pass
 
@@ -67,18 +87,50 @@ class CouponDispenser:
         """
         Run the "coupon dispenser" session.
 
-        The program will loop asking you to enter a customer name (or names), show, or exit.  
-        - If you type exit (exact spelling) the program will print "Goodbye!" and stop.  
+        The program will loop asking you to enter a customer name (or names), show, or exit.
+        - If you type exit (exact spelling) the program will print "Goodbye!" and stop.
         - If you enter one or more customer names (separated by commas).
-           * A coupon will be picked at random from a list of coupons for each name 
-           if that name doesn't already have an assigned coupon. 
+           * A coupon will be picked at random from a list of coupons for each name
+             if that name doesn't already have an assigned coupon.
         - If you type show (exact spelling) it will display a string with each customer's name and coupon.
 
         See the instructions for more details.
 
         Reminder: Use lists only (no dictionaries).
         """
-        # TODO: Implement per instructions 
+        round_num = 1
+
+        while True:
+            prompt = f"Round {round_num} - Enter a name or list of names "
+            user_input = input(prompt).strip()
+
+            if user_input == "exit":
+                print("Goodbye!")
+                break
+
+            elif user_input == "show":
+                if len(self.customer_roster) == 0:
+                    print("No customers have been assigned coupons yet.")
+                else:
+                    for i in range(len(self.customer_roster)):
+                        name = self.customer_roster[i]
+                        coupon = self.coupon_cards[self.issued_indices[i]]
+                        print(f"{name}: {coupon}")
+
+            else:
+                # Split by comma, strip whitespace, and ignore empty names
+                names = []
+                for part in user_input.split(","):
+                    part = part.strip()
+                    if part != "":
+                        names.append(part)
+
+                for name in names:
+                    msg = self.issue_coupon(name)
+                    print(msg)
+                    round_num += 1
+
+        # TODO: Implement per instructions
         pass
 
     def tally_distribution(self):
@@ -115,6 +167,10 @@ def main():
         "Free extra espresso shot",
     ]
 
+    box = CouponDispenser(coupon_cards)
+    box.distribute_session()
+    box.tally_distribution()
+
     # Uncomment the lines below as you implement each function.
     # box = CouponDispenser(coupon_cards)
     # box.distribute_session()
@@ -123,7 +179,7 @@ def main():
 
 
 # -----------------------
-# Tests (about 3–4 per function)
+# Tests (about 3-4 per function)
 # -----------------------
 
 def _capture_session_output(box, inputs):
@@ -155,7 +211,7 @@ def _capture_session_output(box, inputs):
 
 def test():
     """
-    Comprehensive test suite that checks each function with 3–4 cases.
+    Comprehensive test suite that checks each function with 3-4 cases.
     These tests use simple asserts and captured output. They assume
     correct implementations of the methods per the spec.
     """
@@ -174,8 +230,10 @@ def test():
     notes_base = ["A", "B", "C"]
     box = CouponDispenser(notes_base)
     try:
-        check(hasattr(box, "coupon_cards") and hasattr(box, "customer_roster") and hasattr(box, "issued_indices"),
-              "__init__: attributes exist")
+        check(
+            hasattr(box, "coupon_cards") and hasattr(box, "customer_roster") and hasattr(box, "issued_indices"),
+            "__init__: attributes exist",
+        )
         check(box.coupon_cards == notes_base, "__init__: coupon_cards assigned")
         check(isinstance(box.customer_roster, list) and box.customer_roster == [], "__init__: customer_roster empty list")
         check(isinstance(box.issued_indices, list) and box.issued_indices == [], "__init__: issued_indices empty list")
@@ -202,33 +260,40 @@ def test():
         box_empty = CouponDispenser([])
         msg_empty = box_empty.issue_coupon("Test")
         check(msg_empty == "The box is empty.", "issue_coupon: empty coupon_cards returns correct message")
-        
+
         # Test new name assignment
         random.seed(42)
         box2 = CouponDispenser(["N1", "N2"])
         msg1 = box2.issue_coupon("Ava")
-        check("N" in msg1 and len(box2.customer_roster) == 1 and len(box2.issued_indices) == 1,
-              "issue_coupon: assigns to new name and updates lists")
-        
+        check(
+            "N" in msg1 and len(box2.customer_roster) == 1 and len(box2.issued_indices) == 1,
+            "issue_coupon: assigns to new name and updates lists",
+        )
+
         # Test duplicate name (re-report)
         before_len = (len(box2.customer_roster), len(box2.issued_indices))
         msg2 = box2.issue_coupon("Ava")
         after_len = (len(box2.customer_roster), len(box2.issued_indices))
-        check(msg2.startswith("That name already has a coupon:"),
-              "issue_coupon: duplicate name message")
+        check(msg2.startswith("That name already has a coupon:"), "issue_coupon: duplicate name message")
         check(before_len == after_len, "issue_coupon: duplicate does not change state")
         check("N1" in msg2 or "N2" in msg2, "issue_coupon: duplicate returns existing coupon")
-        
+
         # Test name order preserved and alignment
         _ = box2.issue_coupon("Ben")
         check(box2.customer_roster == ["Ava", "Ben"], "issue_coupon: name order preserved")
-        check(len(box2.customer_roster) == len(box2.issued_indices), 
-              "issue_coupon: customer_roster and issued_indices stay aligned after append")
-        check(box2.customer_roster[0] == "Ava" and box2.customer_roster[1] == "Ben",
-              "issue_coupon: appends new names to customer_roster correctly")
-        check(len(box2.issued_indices) == 2 and all(isinstance(i, int) for i in box2.issued_indices),
-              "issue_coupon: appends chosen index to issued_indices correctly")
-        
+        check(
+            len(box2.customer_roster) == len(box2.issued_indices),
+            "issue_coupon: customer_roster and issued_indices stay aligned after append",
+        )
+        check(
+            box2.customer_roster[0] == "Ava" and box2.customer_roster[1] == "Ben",
+            "issue_coupon: appends new names to customer_roster correctly",
+        )
+        check(
+            len(box2.issued_indices) == 2 and all(isinstance(i, int) for i in box2.issued_indices),
+            "issue_coupon: appends chosen index to issued_indices correctly",
+        )
+
         # Test that different people can get the same coupon (repeats allowed)
         random.seed(999)
         box_repeat = CouponDispenser(["Coupon1"])
@@ -236,11 +301,10 @@ def test():
         msg_b = box_repeat.issue_coupon("Bob")
         check(box_repeat.issued_indices == [0, 0], "issue_coupon: allows same coupon for different people")
         check(msg_a == msg_b == "Coupon1", "issue_coupon: same coupon text returned for different people")
-        check(len(box_repeat.customer_roster) == len(box_repeat.issued_indices),
-              "issue_coupon: customer_roster and issued_indices aligned when repeats allowed")
-        
-        # Test empty box message (when all coupons are used up - but this shouldn't happen now)
-        # Actually, with new behavior, we can always assign coupons, so this test is removed
+        check(
+            len(box_repeat.customer_roster) == len(box_repeat.issued_indices),
+            "issue_coupon: customer_roster and issued_indices aligned when repeats allowed",
+        )
     except Exception as e:
         check(False, f"issue_coupon: unexpected exception {e}")
 
@@ -253,12 +317,18 @@ def test():
         check(box3.customer_roster == ["Ava", "Ben"], "distribute_session: comma-separated assigns two names")
         check(("Ava:" in out1) and ("Ben:" in out1), "distribute_session: 'show' shows both names")
         check("Goodbye!" in out1, "distribute_session: prints goodbye on exit")
-        check("Round 1 - Enter a name (or a comma-separated list), or type 'show' or 'exit': " in out1,
-              "distribute_session: initial prompt is correct")
-        check("Round 2 - Enter a name (or a comma-separated list), or type 'show' or 'exit': " in out1,
-              "distribute_session: round number increments correctly")
-        check("Round 3 - Enter a name (or a comma-separated list), or type 'show' or 'exit': " in out1,
-              "distribute_session: round number continues to increment")
+        check(
+            "Round 1 - Enter a name (or a comma-separated list), or type 'show' or 'exit': " in out1,
+            "distribute_session: initial prompt is correct",
+        )
+        check(
+            "Round 2 - Enter a name (or a comma-separated list), or type 'show' or 'exit': " in out1,
+            "distribute_session: round number increments correctly",
+        )
+        check(
+            "Round 3 - Enter a name (or a comma-separated list), or type 'show' or 'exit': " in out1,
+            "distribute_session: round number continues to increment",
+        )
 
         # Test duplicate name handling
         box4 = CouponDispenser(["N1", "N2", "N3"])
@@ -268,13 +338,15 @@ def test():
         # Test empty coupon_cards
         box_empty_session = CouponDispenser([])
         out_empty = _capture_session_output(box_empty_session, ["Test", "exit"])
-        check("The box is empty." in out_empty,
-              "distribute_session: prints empty-box message when coupon_cards is empty")
+        check("The box is empty." in out_empty, "distribute_session: prints empty-box message when coupon_cards is empty")
 
         # Test comma-separated with empty/whitespace pieces
         box5 = CouponDispenser(["G1", "G2"])
         out3 = _capture_session_output(box5, ["A, , B,  , C", "exit"])
-        check(box5.customer_roster == ["A", "B", "C"], "distribute_session: ignores empty pieces in comma-separated input")
+        check(
+            box5.customer_roster == ["A", "B", "C"],
+            "distribute_session: ignores empty pieces in comma-separated input",
+        )
     except Exception as e:
         check(False, f"distribute_session: unexpected exception {e}")
 
@@ -299,6 +371,7 @@ def test():
         check("A1 distribution count: 0." in printed7, "tally_distribution: prints A1 with count 0")
         check("A2 distribution count: 1." in printed7, "tally_distribution: prints A2 with count 1")
         check("A3 distribution count: 2." in printed7, "tally_distribution: prints A3 with count 2")
+
         # Check order: should be in original order (A1, A2, A3), not sorted
         idx_a1 = printed7.find("A1")
         idx_a2 = printed7.find("A2")
@@ -313,8 +386,7 @@ def test():
         with redirect_stdout(buf8):
             box8.tally_distribution()
         printed8 = buf8.getvalue()
-        check("MiXeD distribution count: 2." in printed8,
-              "tally_distribution: prints correct format with mixed case")
+        check("MiXeD distribution count: 2." in printed8, "tally_distribution: prints correct format with mixed case")
 
         # Test multiple coupons with same count (should stay in original order)
         box9 = CouponDispenser(["Banana", "Apple", "Cherry"])
@@ -327,8 +399,7 @@ def test():
         idx_banana = printed9.find("Banana")
         idx_apple = printed9.find("Apple")
         idx_cherry = printed9.find("Cherry")
-        check(idx_banana < idx_apple < idx_cherry,
-              "tally_distribution: maintains original order even with same counts")
+        check(idx_banana < idx_apple < idx_cherry, "tally_distribution: maintains original order even with same counts")
     except Exception as e:
         check(False, f"tally_distribution: unexpected exception {e}")
 
@@ -337,32 +408,40 @@ def test():
         # Test that main() properly defines coupon_cards list
         import inspect
         main_source = inspect.getsource(main)
-        check("coupon_cards" in main_source and "=" in main_source.split("coupon_cards")[1][:50],
-              "main: coupon_cards list is properly defined")
-        
+        check(
+            "coupon_cards" in main_source and "=" in main_source.split("coupon_cards")[1][:50],
+            "main: coupon_cards list is properly defined",
+        )
+
         # Test that main() constructs CouponDispenser
-        check("CouponDispenser" in main_source and "(" in main_source.split("CouponDispenser")[1][:20],
-              "main: CouponDispenser is properly constructed")
-        
+        check(
+            "CouponDispenser" in main_source and "(" in main_source.split("CouponDispenser")[1][:20],
+            "main: CouponDispenser is properly constructed",
+        )
+
         # Test that main() calls distribute_session
-        check("distribute_session" in main_source and "()" in main_source.split("distribute_session")[1][:10],
-              "main: distribute_session is called correctly")
-        
+        check(
+            "distribute_session" in main_source and "()" in main_source.split("distribute_session")[1][:10],
+            "main: distribute_session is called correctly",
+        )
+
         # Test that main() calls tally_distribution (extra credit)
-        check("tally_distribution" in main_source and "()" in main_source.split("tally_distribution")[1][:10],
-              "main: tally_distribution is called correctly (extra credit)")
-        
+        check(
+            "tally_distribution" in main_source and "()" in main_source.split("tally_distribution")[1][:10],
+            "main: tally_distribution is called correctly (extra credit)",
+        )
+
         # Test actual execution of main() with captured output
         buf_main = io.StringIO()
         it_main = iter(["exit"])  # Just exit immediately
-        
+
         def fake_input_main(prompt=""):
             print(prompt, end="", file=buf_main)
             try:
                 return next(it_main)
             except StopIteration:
                 return "exit"
-        
+
         original_input_main = __builtins__.input
         try:
             __builtins__.input = fake_input_main
@@ -370,7 +449,7 @@ def test():
                 main()
         finally:
             __builtins__.input = original_input_main
-        
+
         main_output = buf_main.getvalue()
         check("Round 1" in main_output, "main: distribute_session is executed")
         check("Goodbye!" in main_output, "main: session runs and exits correctly")
@@ -379,9 +458,6 @@ def test():
 
     # ---------- Tests for tally_distribution in main() (Extra Credit) ----------
     try:
-        # Test that tally_distribution output would be displayed in main()
-        # This is tested by checking that main() calls tally_distribution
-        # and that the function prints (which we already test above)
         box_tally_main = CouponDispenser(["Test1", "Test2"])
         box_tally_main.customer_roster = ["A"]
         box_tally_main.issued_indices = [0]
@@ -389,8 +465,7 @@ def test():
         with redirect_stdout(buf_tally_main):
             box_tally_main.tally_distribution()
         tally_output = buf_tally_main.getvalue()
-        check("distribution count:" in tally_output, 
-              "tally_distribution: output format correct for main() display")
+        check("distribution count:" in tally_output, "tally_distribution: output format correct for main() display")
     except Exception as e:
         check(False, f"tally_distribution in main: unexpected exception {e}")
 
@@ -400,4 +475,3 @@ def test():
 if __name__ == "__main__":
     main()
     # test()
-
